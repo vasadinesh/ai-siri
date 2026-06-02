@@ -168,6 +168,41 @@ RDS Security Group: allow TCP 3306 **only from the backend EC2 security group**.
 ### Frontend → S3 + CloudFront or EC2 + nginx
 
 ```bash
+# -------------------------------------------------------------------------------------------
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: voice_interviewer_backend
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      DB_HOST: siri.cjog0846y147.ap-south-1.rds.amazonaws.com
+      DB_PORT: 3306
+      DB_NAME: voice_interviewer
+      DB_USER: admin
+      DB_PASSWORD: YOUR_RDS_PASSWORD
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: voice_interviewer_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+# --------------------------------------------------------------------------------------
+
 cd frontend
 echo "VITE_API_URL=/api" > .env.production
 npm run build
