@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+  # Local MySQL — mirrors AWS RDS MySQL schema
+  mysql:
+    image: mysql:8.0
+    container_name: voice_interviewer_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE:      voice_interviewer
+      MYSQL_USER:          admin
+      MYSQL_PASSWORD:      devpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uadmin", "-pdevpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: voice_interviewer_backend
+    env_file: ./backend/.env
+    environment:
+      NODE_ENV:    development
+      DB_HOST:     mysql
+      DB_PORT:     3306
+      DB_NAME:     voice_interviewer
+      DB_USER:     admin
+      DB_PASSWORD: devpassword
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "4000:4000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: voice_interviewer_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
