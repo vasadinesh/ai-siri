@@ -6,10 +6,11 @@ APP_DIR="/var/www/html"
 
 echo "Preparing application directory..."
 
-sudo mkdir -p "$APP_DIR"
+mkdir -p "$APP_DIR"
 
-# Copy the CodeDeploy deployment files into the application directory
-sudo cp -R /opt/codedeploy-agent/deployment-root/*/d-*/deployment-archive/* "$APP_DIR/" 2>/dev/null || true
+echo "Copying application files..."
+
+cp -R /opt/codedeploy-agent/deployment-root/*/d-*/deployment-archive/* "$APP_DIR/" 2>/dev/null || true
 
 cd "$APP_DIR"
 
@@ -19,7 +20,7 @@ ls -la
 echo "Installing npm dependencies..."
 
 if [ -f package.json ]; then
-    npm install --production
+    npm install --omit=dev
 else
     echo "ERROR: package.json not found in $APP_DIR"
     exit 1
