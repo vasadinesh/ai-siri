@@ -1,4 +1,18 @@
 #!/bin/bash
 
-# Restart pm2 process manager
-pm2 restart main
+set -e
+
+cd /var/www/html/backend
+
+echo "Starting/restarting Node.js application..."
+
+if pm2 describe main > /dev/null 2>&1; then
+    pm2 restart main
+else
+    pm2 start main.js --name main
+fi
+
+pm2 save
+
+echo "PM2 application status:"
+pm2 status
