@@ -1,4 +1,28 @@
 #!/bin/bash
-cd /var/www/html
-npm install
-pm2 start /var/www/html/main.js -f
+
+set -e
+
+APP_DIR="/var/www/html"
+
+echo "Preparing application directory..."
+
+sudo mkdir -p "$APP_DIR"
+
+# Copy the CodeDeploy deployment files into the application directory
+sudo cp -R /opt/codedeploy-agent/deployment-root/*/d-*/deployment-archive/* "$APP_DIR/" 2>/dev/null || true
+
+cd "$APP_DIR"
+
+echo "Current application files:"
+ls -la
+
+echo "Installing npm dependencies..."
+
+if [ -f package.json ]; then
+    npm install --production
+else
+    echo "ERROR: package.json not found in $APP_DIR"
+    exit 1
+fi
+
+echo "AfterInstall completed successfully."
