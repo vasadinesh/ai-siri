@@ -1,28 +1,30 @@
-#!/bin/bash
 
+#!/bin/bash
 set -e
 
 APP_DIR="/var/www/html"
 
 echo "Preparing application directory..."
-
 mkdir -p "$APP_DIR"
 
-echo "Copying application files..."
+echo "Checking package.json locations..."
+find "$APP_DIR" -name package.json -type f
 
-cp -R /opt/codedeploy-agent/deployment-root/*/d-*/deployment-archive/* "$APP_DIR/" 2>/dev/null || true
-
-cd "$APP_DIR"
-
-echo "Current application files:"
-ls -la
-
-echo "Installing npm dependencies..."
-
-if [ -f package.json ]; then
+if [ -f "$APP_DIR/backend/package.json" ]; then
+    echo "Installing backend dependencies..."
+    cd "$APP_DIR/backend"
     npm install --omit=dev
-else
-    echo "ERROR: package.json not found in $APP_DIR"
+fi
+
+if [ -f "$APP_DIR/frontend/package.json" ]; then
+    echo "Installing frontend dependencies..."
+    cd "$APP_DIR/frontend"
+    npm install --omit=dev
+fi
+
+if [ ! -f "$APP_DIR/backend/package.json" ] && \
+   [ ! -f "$APP_DIR/frontend/package.json" ]; then
+    echo "ERROR: No package.json found in backend or frontend."
     exit 1
 fi
 

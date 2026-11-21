@@ -1,12 +1,27 @@
-#!/bin/bash
 
+#!/bin/bash
 set -e
 
-cd /var/www/html/backend
+APP_DIR="/var/www/html/backend"
 
 echo "Starting/restarting Node.js application..."
 
-if pm2 describe main > /dev/null 2>&1; then
+cd "$APP_DIR"
+
+# Check application entry point
+if [ ! -f main.js ]; then
+    echo "ERROR: main.js not found in $APP_DIR"
+    exit 1
+fi
+
+# Check PM2 availability
+if ! command -v pm2 >/dev/null 2>&1; then
+    echo "ERROR: PM2 is not installed or not in PATH"
+    exit 127
+fi
+
+# Start or restart application
+if pm2 describe main >/dev/null 2>&1; then
     pm2 restart main
 else
     pm2 start main.js --name main
